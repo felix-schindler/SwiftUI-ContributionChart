@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-struct SwiftUIView: View {
+struct ContributionChartTest: View {
     var body: some View {
         ContributionChartView(data: [0,3,4,2,4,2,5,1,3], rows: 3, columns: 3, targetValue: 5)
     }
 }
 
-struct SwiftUIView_Previews: PreviewProvider {
+struct ContributionChartTest_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftUIView()
+        ContributionChartTest()
             //.preferredColorScheme(.dark)
     }
 }

@@ -14,8 +14,6 @@ public struct ContributionChartView: View {
     var heatMapRectangleWidth: Double = 20.0
     var heatMapRectangleSpacing: Double = 2.0
     
-    @State var valueText = "Title"
-    
     public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, blockBackgroundColor: Color = Color(UIColor.systemBackground), RectangleWidth: Double = 20.0, RectangleSpacing: Double = 2.0){
         self.data = data
         self.rows = rows
@@ -33,7 +31,7 @@ public struct ContributionChartView: View {
             GeometryReader { geo in
                 ZStack {
                     HStack(spacing: heatMapRectangleSpacing) {
-                        ForEach(0..<columns) { i in
+                        ForEach(0..<columns, id:\.self) { i in
                             let start = i * rows
                             let end = (i + 1) * rows
                             let splitedData = Array(data[start..<end])
@@ -43,25 +41,16 @@ public struct ContributionChartView: View {
                                                      blockColor: blockColor,
                                                      blockBackgroundColor: blockBackgroundColor,
                                                      heatMapRectangleWidth: heatMapRectangleWidth,
-                                                     heatMapRectangleSpacing: heatMapRectangleSpacing,
-                                                     valueText: $valueText
+                                                     heatMapRectangleSpacing: heatMapRectangleSpacing
                             )
                         }
                     }
-                    .onTouch(perform: updateValueText)
                 }
                 .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                .onAppear {
-                    print(geo.size.width, geo.size.height)
-                }
             }
         }
         .padding()
         
-    }
-    
-    func updateValueText(_ location: CGPoint) {
-        print(location)
     }
 }
 
@@ -76,11 +65,9 @@ struct ContributionChartRowView: View {
     var heatMapRectangleWidth: Double
     var heatMapRectangleSpacing: Double
     
-    @Binding var valueText: String
-    
     var body: some View {
         VStack(spacing: heatMapRectangleSpacing) {
-            ForEach(0..<rows) { index in
+            ForEach(0..<rows, id:\.self) { index in
                 let opacityRatio: Double = Double(rowData[index]) / Double(targetValue)
                 ZStack {
                     RoundedRectangle(cornerRadius: 5.0)
@@ -93,9 +80,6 @@ struct ContributionChartRowView: View {
                             .opacity(opacityRatio))
                 }
             }
-        }
-        .onAppear() {
-            print(rowData)
         }
     }
 }
