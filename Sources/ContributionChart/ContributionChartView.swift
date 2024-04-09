@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 @available(iOS 13, macOS 10.15, watchOS 6, *)
 public struct ContributionChartView: View {
@@ -9,12 +8,13 @@ public struct ContributionChartView: View {
     var columns: Int
     var targetValue: Double
     var blockColor: Color = Color.green
-    var blockBackgroundColor: Color = Color(hexString: "E6E6E6")
+    var blockBackgroundColor: Color = Color.background
     
     var heatMapRectangleWidth: Double = 20.0
     var heatMapRectangleSpacing: Double = 2.0
+    var heatMapRectangleRadius: Double = 5.0
     
-    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, blockBackgroundColor: Color = Color(UIColor.systemBackground), RectangleWidth: Double = 20.0, RectangleSpacing: Double = 2.0){
+    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, blockBackgroundColor: Color, RectangleWidth: Double = 20.0, RectangleSpacing: Double = 2.0, RectangleRadius: Double = 5.0){
         self.data = data
         self.rows = rows
         self.columns = columns
@@ -23,6 +23,18 @@ public struct ContributionChartView: View {
         self.blockBackgroundColor = blockBackgroundColor
         self.heatMapRectangleWidth = RectangleWidth
         self.heatMapRectangleSpacing = RectangleSpacing
+        self.heatMapRectangleRadius = RectangleRadius
+    }
+    
+    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, RectangleWidth: Double = 20.0, RectangleSpacing: Double = 2.0, RectangleRadius: Double = 5.0){
+        self.data = data
+        self.rows = rows
+        self.columns = columns
+        self.targetValue = targetValue
+        self.blockColor = blockColor
+        self.heatMapRectangleWidth = RectangleWidth
+        self.heatMapRectangleSpacing = RectangleSpacing
+        self.heatMapRectangleRadius = RectangleRadius
     }
     
     public var body: some View {
@@ -31,7 +43,7 @@ public struct ContributionChartView: View {
             GeometryReader { geo in
                 ZStack {
                     HStack(spacing: heatMapRectangleSpacing) {
-                        ForEach(0..<columns, id:\.self) { i in
+                        ForEach(0..<columns, id: \.self) { i in
                             let start = i * rows
                             let end = (i + 1) * rows
                             let splitedData = Array(data[start..<end])
@@ -41,7 +53,8 @@ public struct ContributionChartView: View {
                                                      blockColor: blockColor,
                                                      blockBackgroundColor: blockBackgroundColor,
                                                      heatMapRectangleWidth: heatMapRectangleWidth,
-                                                     heatMapRectangleSpacing: heatMapRectangleSpacing
+                                                     heatMapRectangleSpacing: heatMapRectangleSpacing,
+                                                     valueText: $valueText
                             )
                         }
                     }
@@ -65,23 +78,31 @@ struct ContributionChartRowView: View {
     var heatMapRectangleWidth: Double
     var heatMapRectangleSpacing: Double
     
+    @Binding var valueText: String
+    
     var body: some View {
         VStack(spacing: heatMapRectangleSpacing) {
-            ForEach(0..<rows, id:\.self) { index in
+            ForEach(0..<rows) { index in
                 let opacityRatio: Double = Double(rowData[index]) / Double(targetValue)
                 ZStack {
-                    RoundedRectangle(cornerRadius: 5.0)
+                    RoundedRectangle(cornerRadius: heatMapRectangleRadius)
                         .frame(width: heatMapRectangleWidth, height: heatMapRectangleWidth, alignment: .center
                         )
                         .foregroundColor(blockBackgroundColor)
-                    RoundedRectangle(cornerRadius: 5.0)
+                    RoundedRectangle(cornerRadius: heatMapRectangleRadius)
                         .frame(width: heatMapRectangleWidth, height: heatMapRectangleWidth, alignment: .center)
                         .foregroundColor(blockColor
-                            .opacity(opacityRatio))
+                            .opacity(opacityRatio(index: index)))
                 }
             }
         }
     }
+    
+    func opacityRatio(index: Int) -> Double {
+        var opacityRatio: Double = Double(rowData[index]) / Double(targetValue)
+        return opacityRatio > 1.0 ? 1.0 : opacityRatio
+    }
+    
 }
 
 extension Color {
@@ -102,4 +123,17 @@ extension Color {
         }
         self.init(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255)
     }
+#if os(macOS)
+    static let background = Color(NSColor.windowBackgroundColor)
+    static let secondaryBackground = Color(NSColor.underPageBackgroundColor)
+    static let tertiaryBackground = Color(NSColor.controlBackgroundColor)
+#endif
+#if os(iOS)
+    static let background = Color(UIColor.systemBackground)
+    static let secondaryBackground = Color(UIColor.secondarySystemBackground)
+    static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
+#endif
+    #if os(watchOS)
+    static let background = Color.black
+    #endif
 }
